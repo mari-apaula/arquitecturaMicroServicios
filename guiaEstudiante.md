@@ -97,6 +97,25 @@ Asegúrate de que `composer.json` tenga las dependencias correctas:
 
 > **Nota**: Agregamos `guzzlehttp/guzzle` porque nuestro servicio consumirá otros microservicios.
 
+#### 1.4 Instalar dependencias
+
+```bash
+composer install
+```
+
+#### 1.5 Configurar bootstrap/app.php
+
+Edita `bootstrap/app.php` y agrega la configuración para cargar variables de entorno de la base de datos:
+
+```php
+$app->withFacades();
+$app->withEloquent();
+
+$app->configure('database');
+```
+
+> **Importante**: Esta línea es necesaria para que Lumen cargue la configuración de la base de datos desde `.env`.
+
 ### Paso 2: Configurar Variables de Entorno
 
 Crea el archivo `.env` en `LumenReviewsApi/.env`:
@@ -110,7 +129,7 @@ APP_URL=http://localhost:8003
 APP_TIMEZONE=UTC
 
 DB_CONNECTION=sqlite
-DB_DATABASE=/ruta/completa/a/LumenReviewsApi/database/database.sqlite
+DB_DATABASE=C:\proyecto\arquitecturaMicroServicios\LumenReviewsApi\database\database.sqlite
 
 # URLs de otros servicios que consumiremos
 AUTHORS_SERVICE_BASE_URL=http://localhost:8001
@@ -123,6 +142,15 @@ LOG_SLACK_WEBHOOK_URL=
 > **Importante**: 
 > - El puerto `8003` es para el nuevo servicio
 > - Las URLs de `AUTHORS_SERVICE_BASE_URL` y `BOOKS_SERVICE_BASE_URL` son necesarias para consumir esos servicios
+> - En Windows, usa rutas absolutas con barras invertidas para `DB_DATABASE`
+
+#### Generar APP_KEY
+
+```bash
+php artisan key:generate
+```
+
+Esto generará una clave única para `APP_KEY` en tu `.env`.
 
 ### Paso 3: Crear la Migración
 
@@ -170,6 +198,8 @@ Ejecuta la migración:
 ```bash
 php artisan migrate
 ```
+
+> **Nota**: Para SQLite, el archivo `database/database.sqlite` se crea automáticamente si no existe al ejecutar `php artisan migrate`. Si hay problemas, crea el archivo manualmente con `touch database/database.sqlite`.
 
 ### Paso 4: Crear el Modelo
 
@@ -582,7 +612,19 @@ class Handler extends ExceptionHandler
 }
 ```
 
-### Paso 11: Iniciar el Servicio
+### Paso 11: Configurar bootstrap/app.php
+
+Edita `bootstrap/app.php` para habilitar la carga de configuración de servicios externos si es necesario (aunque en este ejemplo no lo usamos directamente):
+
+```php
+$app->withFacades();
+$app->withEloquent();
+
+$app->configure('database');
+// $app->configure('services'); // Opcional, si usas config files
+```
+
+### Paso 12: Iniciar el Servicio
 
 ```bash
 cd LumenReviewsApi
@@ -597,7 +639,9 @@ Ahora que tienes tu nuevo microservicio funcionando, necesitas integrarlo con el
 
 ### Paso 1: Configurar el Gateway
 
-#### 1.1 Agregar configuración en `LumenGatewayApi/config/services.php`:
+#### 1.1 Crear archivo de configuración en `LumenGatewayApi/config/services.php`:
+
+Si no existe, crea el archivo `LumenGatewayApi/config/services.php`:
 
 ```php
 <?php
@@ -620,6 +664,8 @@ return [
 ];
 ```
 
+> **Nota**: Si el archivo ya existe, solo agrega la sección 'reviews'.
+
 #### 1.2 Agregar variables de entorno en `LumenGatewayApi/.env`:
 
 ```env
@@ -627,6 +673,16 @@ return [
 REVIEWS_SERVICE_BASE_URL=http://localhost:8003
 REVIEWS_SERVICE_SECRET=
 ```
+
+#### 1.3 Verificar bootstrap/app.php del Gateway
+
+Asegúrate de que `LumenGatewayApi/bootstrap/app.php` tenga:
+
+```php
+$app->configure('services');
+```
+
+Si no está, agrégalo después de `$app->withEloquent();`.
 
 ### Paso 2: Crear el Servicio en el Gateway
 
@@ -1107,6 +1163,40 @@ Crea un servicio de Recommendations que:
 - Genere recomendaciones basadas en ratings y reviews
 - Consuma información de Reviews y Books
 - Retorne libros recomendados
+
+---
+
+## Solución de Problemas Comunes
+
+### Error: "Database file at path [database/database.sqlite] does not exist"
+
+**Causa**: Lumen no está cargando la configuración de la base de datos desde `.env`.
+
+**Solución**: Agrega `$app->configure('database');` en `bootstrap/app.php` después de `$app->withEloquent();`.
+
+### Error: "BOOKS_SERVICE_BASE_URL is not configured"
+
+**Causa**: Variables de entorno no cargadas o faltantes.
+
+**Solución**: 
+- Verifica que el archivo `.env` exista y tenga las variables correctas.
+- Reinicia el servidor después de cambios en `.env`.
+- En Windows, usa rutas absolutas para `DB_DATABASE`.
+
+### Error 500 al consumir otros servicios
+
+**Causa**: El servicio destino no está ejecutándose o hay problemas de conectividad.
+
+**Solución**:
+- Verifica que todos los servicios estén ejecutándose en sus puertos respectivos.
+- Revisa los logs de cada servicio en `storage/logs/lumen.log`.
+- Usa herramientas como Postman para probar endpoints individuales.
+
+### Error de validación al crear reseñas
+
+**Causa**: Intentando crear una reseña para un libro que no existe.
+
+**Solución**: El código ya maneja esto retornando 404. Asegúrate de que el servicio de Books esté funcionando y tenga libros.
 
 ---
 

@@ -37,7 +37,8 @@ class BookService
      */
     public function obtainBooks()
     {
-        return $this->performRequest('GET', '/books');
+        // CORREGIDO: Agregado /api
+        return $this->performRequest('GET', '/api/books');
     }
 
     /**
@@ -46,7 +47,8 @@ class BookService
      */
     public function createBook($data)
     {
-        return $this->performRequest('POST', '/books', $data);
+        // CORREGIDO: Agregado /api
+        return $this->performRequest('POST', '/api/books', $data);
     }
 
     /**
@@ -55,7 +57,8 @@ class BookService
      */
     public function obtainBook($book)
     {
-        return $this->performRequest('GET', "/books/{$book}");
+        // CORREGIDO: Agregado /api
+        return $this->performRequest('GET', "/api/books/{$book}");
     }
 
     /**
@@ -64,7 +67,8 @@ class BookService
      */
     public function editBook($data, $book)
     {
-        return $this->performRequest('PUT', "/books/{$book}", $data);
+        // CORREGIDO: Agregado /api
+        return $this->performRequest('PUT', "/api/books/{$book}", $data);
     }
 
     /**
@@ -73,7 +77,7 @@ class BookService
      */
     public function deleteBook($book)
     {
-        return $this->performRequest('DELETE', "/books/{$book}");
+        // CORREGIDO: Agregado /api
+        return $this->performRequest('DELETE', "/api/books/{$book}");
     }
-
 }
