@@ -593,6 +593,18 @@ Si eres estudiante y quieres aprender a crear nuevos microservicios, consulta la
 
 Para preguntas o problemas, revisa la documentación de [Laravel Lumen](https://lumen.laravel.com/docs).
 
+
+
+## Instrucciones de Ejecución
+1. Instalar dependencias en cada carpeta: `composer install`.
+2. Crear archivos `database.sqlite` en las carpetas `database` de cada servicio.
+3. Correr migraciones: `php artisan migrate:fresh`.
+4. Levantar servidores en estos puertos (Requerido para el Gateway):
+   - Authors: 8001
+   - Books: 8002
+   - Categories: 8015
+   - Gateway: 8000
+
 ---
 
 **Desarrollado con ❤️ usando Laravel Lumen** - xavicrip
